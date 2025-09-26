@@ -1,5 +1,7 @@
 import { createWebHistory, createRouter } from "vue-router";
 import ContactBook from "@/views/ContactBook.vue";
+import ContactAdd from "@/views/ContactAdd.vue";
+import ContactEdit from "@/views/ContactEdit.vue";
 
 const routes = [
   {
@@ -8,7 +10,23 @@ const routes = [
     component: ContactBook,
   },
   {
-    path: "/:pathMatch(.*)*", // Route bắt tất cả đường dẫn không hợp lệ
+    path: "/contacts",
+    name: "contact.book",
+    component: ContactBook,
+  },
+  {
+    path: "/contacts/add",
+    name: "contact.add",
+    component: ContactAdd,
+  },
+  {
+    path: "/contacts/:id/edit",
+    name: "contact.edit",
+    component: ContactEdit,
+    props: true,
+  },
+  {
+    path: "/:pathMatch(.*)*",
     name: "notfound",
     component: () => import("@/views/NotFound.vue"),
   },

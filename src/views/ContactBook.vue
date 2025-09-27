@@ -1,43 +1,21 @@
 <template>
   <div class="page row">
-    <!-- Search input -->
+    <!-- Ô tìm kiếm -->
     <div class="col-md-10">
-      <div class="input-group mb-3">
-        <input
-          type="text"
-          class="form-control"
-          placeholder="Tìm kiếm liên hệ..."
-          v-model="searchText"
-        />
-        <div class="input-group-append">
-          <span class="input-group-text">
-            <i class="fas fa-search"></i>
-          </span>
-        </div>
-      </div>
+      <InputSearch v-model="searchText" />
     </div>
 
-    <!-- Contact list -->
+    <!-- Danh sách liên hệ -->
     <div class="mt-3 col-md-6">
       <h4>
         Danh bạ
         <i class="fas fa-address-book"></i>
       </h4>
-
-      <div v-if="filteredContactsCount > 0" class="contact-list">
-        <div
-          v-for="(contact, index) in filteredContacts"
-          :key="contact._id"
-          :class="['contact-item', { active: activeIndex === index }]"
-          @click="activeIndex = index"
-        >
-          <div class="contact-name">{{ contact.name }}</div>
-          <div class="contact-email">{{ contact.email }}</div>
-          <div class="contact-favorite" v-if="contact.favorite">
-            <i class="fas fa-heart text-danger"></i>
-          </div>
-        </div>
-      </div>
+      <ContactList
+        v-if="filteredContactsCount > 0"
+        :contacts="filteredContacts"
+        v-model:activeIndex="activeIndex"
+      />
       <p v-else>Không có liên hệ nào.</p>
 
       <div class="mt-3 row justify-content-around align-items-center">
@@ -53,32 +31,28 @@
       </div>
     </div>
 
-    <!-- Contact details -->
+    <!-- Chi tiết liên hệ -->
     <div class="mt-3 col-md-6" v-if="activeContact">
       <h4>
         Chi tiết Liên hệ
         <i class="fas fa-address-card"></i>
       </h4>
       <ContactCard :contact="activeContact" />
-      <div class="mt-2">
-        <router-link
-          :to="{ name: 'contact.edit', params: { id: activeContact._id } }"
-          class="btn btn-sm btn-outline-primary"
-        >
-          <i class="fas fa-edit"></i> Sửa / Xóa
-        </router-link>
-      </div>
     </div>
   </div>
 </template>
 
 <script>
 import ContactCard from "@/components/ContactCard.vue";
+import InputSearch from "@/components/InputSearch.vue";
+import ContactList from "@/components/ContactList.vue";
 import ContactService from "@/services/contact.service";
 
 export default {
   components: {
     ContactCard,
+    InputSearch,
+    ContactList,
   },
   data() {
     return {
@@ -96,14 +70,13 @@ export default {
     contactStrings() {
       return this.contacts.map((contact) => {
         const { name, email, address, phone } = contact;
-        return [name, email, address, phone].join("").toLowerCase();
+        return [name, email, address, phone].join("");
       });
     },
     filteredContacts() {
       if (!this.searchText) return this.contacts;
-      const keyword = this.searchText.toLowerCase();
-      return this.contacts.filter((_c, index) =>
-        this.contactStrings[index].includes(keyword)
+      return this.contacts.filter((_contact, index) =>
+        this.contactStrings[index].includes(this.searchText)
       );
     },
     activeContact() {
@@ -119,7 +92,7 @@ export default {
       try {
         this.contacts = await ContactService.getAll();
       } catch (error) {
-        console.error("Error retrieving contacts:", error);
+        console.log(error);
       }
     },
     refreshList() {
@@ -131,10 +104,8 @@ export default {
         try {
           await ContactService.deleteAll();
           this.refreshList();
-          alert("Đã xóa tất cả liên hệ thành công!");
         } catch (error) {
-          console.error("Error deleting all contacts:", error);
-          alert("Xóa tất cả thất bại!");
+          console.log(error);
         }
       }
     },
@@ -152,48 +123,5 @@ export default {
 .page {
   text-align: left;
   max-width: 750px;
-}
-
-.contact-list {
-  max-height: 400px;
-  overflow-y: auto;
-  border: 1px solid #dee2e6;
-  border-radius: 0.25rem;
-}
-
-.contact-item {
-  padding: 10px;
-  border-bottom: 1px solid #dee2e6;
-  cursor: pointer;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.contact-item:hover {
-  background-color: #f8f9fa;
-}
-
-.contact-item.active {
-  background-color: #007bff;
-  color: white;
-}
-
-.contact-item:last-child {
-  border-bottom: none;
-}
-
-.contact-name {
-  font-weight: bold;
-  margin-bottom: 2px;
-}
-
-.contact-email {
-  font-size: 0.9em;
-  color: #6c757d;
-}
-
-.contact-item.active .contact-email {
-  color: #e9ecef;
 }
 </style>
